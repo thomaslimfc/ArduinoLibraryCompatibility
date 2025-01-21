@@ -1,7 +1,9 @@
 # Arduino Library Compatibility
 
 ## Description
-This repository serves as a comprehensive reference for testing the compatibility of Arduino libraries with various sensors, modules, and components. Developed by Thomas Fang-Chern Lim, it provides tested and verified examples for seamless integration with supported hardware.
+This repository serves as a comprehensive reference for testing the compatibility of Arduino libraries with various sensors, modules, and components.
+
+Most importantly, it provides tested and verified examples for seamless integration with supported hardware.
 
 ## Collaborators:
 - [Thomas Fang-chern Lim](www.linkedin.com/in/limfangchern)

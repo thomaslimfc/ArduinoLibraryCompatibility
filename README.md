@@ -1,5 +1,6 @@
 # Arduino Library Compatibility
-</br>
+
+
 ## Description
 This repository serves as a comprehensive reference for testing the compatibility of Arduino libraries with various sensors, modules, and components.
 

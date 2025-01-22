@@ -1,0 +1,112 @@
+// LCD Humidity Rain LDR
+
+#include <Wire.h>
+#include <LiquidCrystal_I2C.h>
+#include <DHT.h>
+
+// Define the DHT sensor type and pin
+#define DHTPIN 2      // Pin where the DHT sensor is connected
+#define DHTTYPE DHT11 // Define sensor type (DHT11)
+
+// Define Rain Sensor Pins
+#define RAIN_ANALOG_PIN A0 // Analog output pin of the rain sensor
+#define RAIN_DIGITAL_PIN 3 // Digital output pin of the rain sensor
+
+// Define LDR Pin
+#define LDR_ANALOG_PIN A1 // Analog output pin of the LDR sensor
+
+// Initialize the DHT sensor and LCD
+DHT dht(DHTPIN, DHTTYPE);
+LiquidCrystal_I2C lcd(0x27, 16, 2); // Update address and size as needed
+
+void setup() {
+  // Initialize the LCD
+  lcd.init();
+  lcd.backlight();
+  lcd.clear();
+
+  // Display a startup message
+  lcd.setCursor(0, 0); // Line 1
+  lcd.print("PLUS HIGHWAYS");
+  lcd.setCursor(0, 1); // Line 2
+  lcd.print("IoT Integrations");
+  delay(2500); // Wait for 2.5 seconds
+
+  lcd.clear();
+
+  // Initialize the DHT sensor
+  dht.begin();
+
+  // Configure rain sensor pin modes
+  pinMode(RAIN_DIGITAL_PIN, INPUT);
+}
+
+void loop() {
+  // Read temperature and humidity
+  float temperature = dht.readTemperature();
+  float humidity = dht.readHumidity();
+
+  // Read rain sensor values
+  int rainIntensity = analogRead(RAIN_ANALOG_PIN); // Analog value (0-1023)
+  int rainStatus = digitalRead(RAIN_DIGITAL_PIN);  // Digital value (HIGH or LOW)
+
+  // Read LDR value
+  int lightIntensity = analogRead(LDR_ANALOG_PIN); // Analog value (0-1023)
+  int lightPercentage = map(lightIntensity, 100, 800, 0, 100); // Map to %
+  lightPercentage = constrain(lightPercentage, 0, 100); // Ensure within 0-100%
+
+  // Check if DHT readings are valid
+  if (isnan(temperature) || isnan(humidity)) {
+    lcd.setCursor(0, 0);
+    lcd.print("Sensor Error!");
+    lcd.setCursor(0, 1);
+    lcd.print("Check Sensors!");
+  } else {
+    // Display temperature and humidity
+    lcd.setCursor(0, 0); // Line 1
+    lcd.print("T:");
+    lcd.print(temperature, 1); // Show 1 decimal place
+    lcd.print((char)223);      // Degree symbol
+    lcd.print("C ");
+
+    lcd.print("H:");
+    String humidityStatus;
+    if (humidity < 30) {
+      humidityStatus = "Dry";
+    } else if (humidity <= 60) {
+      humidityStatus = "Norm.";
+    } else {
+      humidityStatus = "Humid";
+    }
+    lcd.print(humidityStatus);
+
+    // Display rain status and light intensity
+    lcd.setCursor(0, 1); // Line 2
+    String rainStatusText;
+    if (rainStatus == LOW) { // Rain detected
+      if (rainIntensity < 300) {
+        rainStatusText = "R:Little";
+      } else if (rainIntensity < 700) {
+        rainStatusText = "R:Mod.  ";
+      } else {
+        rainStatusText = "R:Heavy ";
+      }
+    } else {
+      rainStatusText = "R:No    ";
+    }
+    lcd.print(rainStatusText + " ");
+
+    // Determine light status
+    String lightStatus;
+    if (lightPercentage < 30) {
+      lightStatus = "Bright";
+    } else if (lightPercentage < 70) {
+      lightStatus = "Dim   ";
+    } else {
+      lightStatus = "Dark ";
+    }
+    lcd.print(lightStatus);
+  }
+
+  delay(2000); // Update every 2 seconds
+}

@@ -1,0 +1,90 @@
+// LCD Humidity Rain LDR
+
+#include <Wire.h>
+#include <LiquidCrystal_I2C.h>
+#include <DHT.h>
+
+// Define the DHT sensor type and pin
+#define DHTPIN 2      // Pin where the DHT sensor is connected
+#define DHTTYPE DHT11 // Define sensor type (DHT11)
+
+// Define Rain Sensor Pins
+#define RAIN_ANALOG_PIN A0 // Analog output pin of the rain sensor
+#define RAIN_DIGITAL_PIN 3 // Digital output pin of the rain sensor
+
+// Define LDR Pin
+#define LDR_ANALOG_PIN A1 // Analog output pin of the LDR sensor
+
+// Initialize the DHT sensor and LCD
+DHT dht(DHTPIN, DHTTYPE);
+LiquidCrystal_I2C lcd(0x27, 16, 2); // Update address and size as needed
+
+void setup() {
+  // Initialize the LCD
+  lcd.init();
+  lcd.backlight();
+  lcd.clear();
+
+  // Display a startup message
+  lcd.setCursor(0, 0); // Line 1
+  lcd.print("THOMAS COMONICS");
+  lcd.setCursor(0, 1); // Line 2
+  lcd.print("TECHNOLOGY");
+  delay(2000); // Wait for 2 seconds
+
+  lcd.clear();
+
+  // Initialize the DHT sensor
+  dht.begin();
+
+  // Configure rain sensor pin modes
+  pinMode(RAIN_DIGITAL_PIN, INPUT);
+}
+
+void loop() {
+  // Read temperature and humidity
+  float temperature = dht.readTemperature();
+  float humidity = dht.readHumidity();
+
+  // Read rain sensor values
+  int rainIntensity = analogRead(RAIN_ANALOG_PIN); // Analog value (0-1023)
+  int rainStatus = digitalRead(RAIN_DIGITAL_PIN);  // Digital value (HIGH or LOW)
+
+  // Read LDR value
+  int lightIntensity = analogRead(LDR_ANALOG_PIN); // Analog value (0-1023)
+
+  // Map LDR value to percentage
+  int lightPercentage = map(lightIntensity, 0, 1023, 0, 100);
+
+  // Check if DHT readings are valid
+  if (isnan(temperature) || isnan(humidity)) {
+    lcd.setCursor(0, 0);
+    lcd.print("Sensor Error!");
+    lcd.setCursor(0, 1);
+    lcd.print("Check Sensors!");
+  } else {
+    // Display temperature and humidity
+    lcd.setCursor(0, 0); // Line 1
+    lcd.print("T:");
+    lcd.print(temperature, 1); // Show 1 decimal place
+    lcd.print((char)223);      // Degree symbol
+    lcd.print("C ");
+    lcd.print("H:");
+    lcd.print(humidity, 0); // No decimal places
+    lcd.print("%");
+
+    // Display rain status and light intensity
+    lcd.setCursor(0, 1); // Line 2
+    if (rainStatus == LOW) { // LOW means rain detected
+      lcd.print("R:Yes ");
+    } else {
+      lcd.print("R:No  ");
+    }
+
+    lcd.print("L:");
+    lcd.print(lightPercentage); // Light intensity as a percentage
+    lcd.print("%");
+  }
+
+  delay(2000); // Update every 2 seconds
+}
